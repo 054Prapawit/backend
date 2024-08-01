@@ -1,5 +1,6 @@
 import { Client } from 'pg';
 import dotenv from 'dotenv';
+import bcrypt from 'bcrypt';
 
 dotenv.config();
 
@@ -50,7 +51,7 @@ export async function PUT(request) {
         const { id, firstname, lastname, password } = await request.json();
         const hashedPassword = await bcrypt.hash(password, 10);
         const res = await client.query('UPDATE tbl_users SET firstname = $1, lastname = $2, password = $3 WHERE id = $4 RETURNING *', 
-            [firstname, lastname,hashedPassword, id]);
+            [firstname, lastname, hashedPassword, id]);
         if (res.rows.length === 0) {
             return new Response(JSON.stringify({ error: 'User not found' }), {
                 status: 404,
