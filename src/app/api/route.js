@@ -25,31 +25,48 @@ export async function GET() {
     }
 }
 
-export async function POST() {
+export async function POST(request) {
     try {
-        return new Response(JSON.stringify({ message: "POST DATA OK"}), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
+        const { firstname, lastname, username, password } = await request.json();
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        // console.log(hashedPassword);
+        const res = await client.query('INSERT INTO tbl_users (firstname, lastname, username, password) VALUES ($1, $2, $3, $4) RETURNING *', [firstname, lastname, username, hashedPassword]);
+        return new Response(JSON.stringify(res.rows[0]), {
+            status: 201,
+            headers: { 'Content-Type': 'application/json' },
         });
     } catch (error) {
-        return new Response(JSON.stringify({ error: error }), {
+        console.error(error);
+        return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
+            headers: { 'Content-Type': 'application/json' },
+        });
     }
 }
 
-export async function PUT() {
+export async function PUT(request) {
     try {
-        return new Response(JSON.stringify({ message: "PUT DATA OK"}), {
+        const { id, firstname, lastname, password } = await request.json();
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const res = await client.query('UPDATE tbl_users SET firstname = $1, lastname = $2, password = $3 WHERE id = $4 RETURNING *', 
+            [firstname, lastname,hashedPassword, id]);
+        if (res.rows.length === 0) {
+            return new Response(JSON.stringify({ error: 'User not found' }), {
+                status: 404,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+        return new Response(JSON.stringify(res.rows[0]), {
             status: 200,
-            headers: { "Content-Type": "application/json" },
+            headers: { 'Content-Type': 'application/json' },
         });
     } catch (error) {
-        return new Response(JSON.stringify({ error: error }), {
+        console.error(error);
+        return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
+            headers: { 'Content-Type': 'application/json' },
+        });
     }
 }
 
