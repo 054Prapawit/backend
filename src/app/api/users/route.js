@@ -87,7 +87,7 @@ export async function DELETE(request) {
     });
     } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
+    return new Response(JSON.stringify({ error: error.message }), {
     status: 500,
     headers: { 'Content-Type': 'application/json' },
     });
